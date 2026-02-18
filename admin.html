@@ -3,41 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <title>Lost & Found Admin Panel</title>
-<link rel="manifest" href="manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+
 <style>
-*{box-sizing:border-box;font-family:Inter,sans-serif;}
-body{margin:0;padding:24px;background:#eef2f6;color:#1f2937;}
+/* ===== GENERAL STYLES ===== */
+*{box-sizing:border-box;font-family:Inter,Segoe UI,Tahoma,sans-serif;margin:0;padding:0;}
+body{background:#eef2f6;color:#1f2937;padding:20px;}
 
-/* LOGIN CARD */
+/* ===== LOGIN CARD ===== */
 #login{display:flex;justify-content:center;align-items:center;height:100vh;}
-.login-card{background:#fff;padding:30px;border-radius:14px;width:320px;text-align:center;}
-.login-card input, .login-card button{width:100%;padding:12px;margin-top:10px;}
-.primary{background:#2563eb;color:white;font-weight:600;border:none;padding:10px;border-radius:10px;cursor:pointer;}
-.primary:hover{background:#1e40af;}
+.login-card{background:#fff;padding:30px;border-radius:14px;width:320px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+.login-card input, .login-card button{width:100%;padding:12px;margin-top:10px;border-radius:10px;border:1px solid #d1d5db;}
+button.primary{background:#2563eb;color:white;border:none;cursor:pointer;font-weight:600;}
+button.primary:hover{background:#1e40af;}
 
-/* HEADER */
+/* ===== ADMIN PANEL ===== */
+#admin{display:none;}
 header{background:#0f172a;color:white;padding:22px;border-radius:14px;margin-bottom:20px;text-align:center;}
 .container{display:grid;grid-template-columns:340px 1fr;gap:20px;}
-
-/* FORM AND LISTS */
 .form{background:#fff;padding:20px;border-radius:14px;border:1px solid #e5e7eb;}
-input, select, button{width:100%;padding:10px;margin-bottom:10px;border-radius:10px;border:1px solid #d1d5db;}
+input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10px;border:1px solid #d1d5db;}
+button.secondary{background:#e5e7eb;border:none;cursor:pointer;font-weight:600;}
+button.primary{background:#2563eb;color:white;border:none;cursor:pointer;font-weight:600;}
+button.primary:hover{background:#1e40af;}
+
+/* ===== LISTS ===== */
 .lists{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
 .list-box{background:#fff;padding:15px;border-radius:14px;border:1px solid #e5e7eb;}
-li{background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:10px;border-left:5px solid #2563eb;display:flex;gap:10px;align-items:flex-start;}
+li{background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:10px;border-left:5px solid #2563eb;font-size:0.9rem;display:flex;gap:10px;align-items:flex-start;}
 li.found{border-left-color:#16a34a;}
 li img{width:60px;height:60px;border-radius:10px;flex-shrink:0;}
 .badge{display:inline-block;padding:4px 8px;font-size:0.7rem;border-radius:999px;margin-bottom:5px;}
 .unclaimed{background:#fde68a;color:#92400e;}
 .claimed{background:#bbf7d0;color:#065f46;}
 .actions{display:flex;gap:6px;margin-top:8px;}
-.edit{background:#fbbf24;}
-.delete{background:#dc2626;color:white;}
-.claim{background:#16a34a;color:white;}
+.edit{background:#fbbf24;border:none;color:white;padding:4px 6px;border-radius:6px;cursor:pointer;}
+.delete{background:#dc2626;color:white;border:none;padding:4px 6px;border-radius:6px;cursor:pointer;}
+.claim{background:#16a34a;color:white;border:none;padding:4px 6px;border-radius:6px;cursor:pointer;}
+
 @media(max-width:900px){.container,.lists{grid-template-columns:1fr;}}
 </style>
 </head>
+
 <body>
 
 <!-- LOGIN -->
@@ -50,93 +58,163 @@ li img{width:60px;height:60px;border-radius:10px;flex-shrink:0;}
 </div>
 
 <!-- ADMIN PANEL -->
-<div id="admin" style="display:none">
-<header>
-  <h1>Lost & Found Admin Panel</h1>
-  <p>Municipal / Campus Management System</p>
-</header>
+<div id="admin">
+  <header>
+    <h1>Lost & Found Admin Panel</h1>
+    <p>Municipal / Campus Management System</p>
+  </header>
 
-<div class="container">
-  <div class="form">
-    <h3>Add / Edit Item</h3>
-    <select id="type"><option value="lost">Lost</option><option value="found">Found</option></select>
-    <input id="item" placeholder="Item name">
-    <input id="location" placeholder="Location">
-    <input id="name" placeholder="Contact name">
-    <input id="contact" placeholder="Contact">
-    <input type="file" id="photo" accept="image/*">
-    <img id="preview" style="display:none;width:80px;height:80px;margin-bottom:10px;">
-    <input id="date" type="date">
-    <input id="time" type="time">
-    <button class="primary" onclick="addItem()">Save</button>
-    <button onclick="clearForm()">Cancel</button>
-  </div>
-  <div>
-    <input id="search" placeholder="Search..." oninput="renderLists()">
-    <div class="lists">
-      <div class="list-box"><h3>Lost Items</h3><ul id="lostList"></ul></div>
-      <div class="list-box"><h3>Found Items</h3><ul id="foundList"></ul></div>
+  <div class="container">
+    <!-- FORM -->
+    <div class="form">
+      <h3>Add / Edit Item</h3>
+      <select id="type">
+        <option value="lost">Lost</option>
+        <option value="found">Found</option>
+      </select>
+      <input id="item" placeholder="Item name">
+      <input id="location" placeholder="Location">
+      <input id="name" placeholder="Contact name">
+      <input id="contact" placeholder="Contact">
+      <input type="file" id="photo" accept="image/*" capture="environment">
+      <img id="preview" style="display:none;width:80px;height:80px;margin-bottom:10px;">
+      <input id="date" type="date">
+      <input id="time" type="time">
+      <button class="primary" onclick="addItem()">Save</button>
+      <button class="secondary" onclick="clearForm()">Cancel</button>
+      <hr>
+      <button onclick="exportCSV()">Export CSV</button>
+      <button onclick="window.print()">Print / PDF</button>
+    </div>
+
+    <!-- LISTS -->
+    <div>
+      <input id="search" placeholder="Search..." oninput="renderLists()">
+      <div class="lists">
+        <div class="list-box">
+          <h3>Lost Items</h3>
+          <ul id="lostList"></ul>
+        </div>
+        <div class="list-box">
+          <h3>Found Items</h3>
+          <ul id="foundList"></ul>
+        </div>
+      </div>
     </div>
   </div>
 </div>
-</div>
 
 <script>
+// ----- VARIABLES -----
 const ADMIN_PIN="1234";
 let lostItems=JSON.parse(localStorage.getItem("lostItems"))||[];
 let foundItems=JSON.parse(localStorage.getItem("foundItems"))||[];
 let editIndex=-1;
 
+// ----- ELEMENTS -----
+const loginDiv=document.getElementById("login");
 const photoInput=document.getElementById("photo");
 const preview=document.getElementById("preview");
+const typeSelect=document.getElementById("type");
 
-// LOGIN
+// ----- LOGIN -----
 function login(){
-  if(pin.value===ADMIN_PIN){loginDiv.style.display="none"; admin.style.display="block"; renderLists();}
-  else alert("Invalid PIN");
+  if(document.getElementById("pin").value===ADMIN_PIN){
+    loginDiv.style.display="none";
+    admin.style.display="block";
+    renderLists();
+  }else alert("Invalid PIN");
 }
-const loginDiv=document.getElementById("login");
 
-// PHOTO PREVIEW
-photoInput.addEventListener("change",()=>{ const file=photoInput.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=()=>{preview.src=reader.result;preview.style.display="block";}; reader.readAsDataURL(file); });
+// ----- PHOTO PREVIEW -----
+photoInput.addEventListener("change",()=>{
+  const file=photoInput.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{preview.src=reader.result; preview.style.display="block";}
+  reader.readAsDataURL(file);
+});
 
-// ADD ITEM
+// ----- ADD / EDIT ITEM -----
 function addItem(){
-  const list=type.value==="lost"?lostItems:foundItems;
-  const entry={item:item.value,location:location.value,name:name.value,contact:contact.value,photo:preview.src||"",date:date.value,time:time.value,status:"Unclaimed"};
-  if(editIndex>-1){list[editIndex]=entry;editIndex=-1;} else list.push(entry);
+  const list=typeSelect.value==="lost"?lostItems:foundItems;
+  const entry={
+    item:item.value,
+    location:location.value,
+    name:name.value,
+    contact:contact.value,
+    photo:preview.src||"",
+    date:date.value,
+    time:time.value,
+    status:"Unclaimed"
+  };
+  if(editIndex>-1){list[editIndex]=entry; editIndex=-1;}
+  else list.push(entry);
   save();
 }
 
-// RENDER LISTS
+// ----- RENDER LISTS -----
 function renderLists(){
-  lostList.innerHTML=""; foundList.innerHTML="";
+  lostList.innerHTML="";
+  foundList.innerHTML="";
   const q=search.value.toLowerCase();
-  lostItems.filter(i=>i.item.toLowerCase().includes(q)).forEach((i,idx)=>{ lostList.innerHTML+=itemCard(i,"lost",idx); });
-  foundItems.filter(i=>i.item.toLowerCase().includes(q)).forEach((i,idx)=>{ foundList.innerHTML+=itemCard(i,"found",idx); });
-}
-function itemCard(i,type,idx){ return `<li class="${type}"><img src="${i.photo||''}"><span class="badge ${i.status==="Claimed"?"claimed":"unclaimed"}">${i.status}</span><strong>${i.item}</strong><br>${i.location}<br>${i.name} – ${i.contact}<br>${i.date} ${i.time}<div class="actions"><button class="edit" onclick="editItem('${type}',${idx})">Edit</button><button class="claim" onclick="toggleStatus('${type}',${idx})">Claim</button><button class="delete" onclick="deleteItem('${type}',${idx})">Delete</button></div></li>`;}
-
-// ACTIONS
-function editItem(type,idx){ const i=(type==="lost"?lostItems:foundItems)[idx]; type.value=type; item.value=i.item; location.value=i.location; name.value=i.name; contact.value=i.contact; preview.src=i.photo||""; preview.style.display=i.photo?"block":"none"; date.value=i.date; time.value=i.time; editIndex=idx; }
-function toggleStatus(type,idx){ const list=type==="lost"?lostItems:foundItems; list[idx].status=list[idx].status==="Claimed"?"Unclaimed":"Claimed"; save(); }
-function deleteItem(type,idx){ (type==="lost"?lostItems:foundItems).splice(idx,1); save(); }
-
-function clearForm(){item.value=location.value=name.value=contact.value=date.value=time.value="";preview.style.display="none"; editIndex=-1;}
-function save(){ localStorage.setItem("lostItems",JSON.stringify(lostItems)); localStorage.setItem("foundItems",JSON.stringify(foundItems)); clearForm(); renderLists();}
-
-// SERVICE WORKER
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js")
-      .then(reg => console.log("SW registered", reg))
-      .catch(err => console.log("SW failed", err));
+  lostItems.filter(i=>i.item.toLowerCase().includes(q)).forEach((i,idx)=>{
+    lostList.innerHTML+=itemCard(i,"lost",idx);
+  });
+  foundItems.filter(i=>i.item.toLowerCase().includes(q)).forEach((i,idx)=>{
+    foundList.innerHTML+=itemCard(i,"found",idx);
   });
 }
+function itemCard(i,type,idx){
+  return `<li class="${type}">
+    <img src="${i.photo||''}">
+    <span class="badge ${i.status==="Claimed"?"claimed":"unclaimed"}">${i.status}</span>
+    <strong>${i.item}</strong><br>${i.location}<br>${i.name} – ${i.contact}<br>${i.date} ${i.time}
+    <div class="actions">
+      <button class="edit" onclick="editItem('${type}',${idx})">Edit</button>
+      <button class="claim" onclick="toggleStatus('${type}',${idx})">Claim</button>
+      <button class="delete" onclick="deleteItem('${type}',${idx})">Delete</button>
+    </div>
+  </li>`;
+}
 
-// INITIAL RENDER
-renderLists();
+// ----- ACTIONS -----
+function editItem(type,idx){
+  const i=(type==="lost"?lostItems:foundItems)[idx];
+  typeSelect.value=type;
+  item.value=i.item; location.value=i.location;
+  name.value=i.name; contact.value=i.contact;
+  preview.src=i.photo||""; preview.style.display=i.photo?"block":"none";
+  date.value=i.date; time.value=i.time;
+  editIndex=idx;
+}
+function toggleStatus(type,idx){
+  const list=type==="lost"?lostItems:foundItems;
+  list[idx].status=list[idx].status==="Claimed"?"Unclaimed":"Claimed";
+  save();
+}
+function deleteItem(type,idx){(type==="lost"?lostItems:foundItems).splice(idx,1); save();}
+function clearForm(){item.value=location.value=name.value=contact.value=date.value=time.value=""; preview.style.display="none"; editIndex=-1;}
+function exportCSV(){
+  let rows=[["Type","Item","Location","Name","Contact","Date","Time","Status","Photo"]];
+  lostItems.forEach(i=>rows.push(["Lost",i.item,i.location,i.name,i.contact,i.date,i.time,i.status,i.photo]));
+  foundItems.forEach(i=>rows.push(["Found",i.item,i.location,i.name,i.contact,i.date,i.time,i.status,i.photo]));
+  const csv=rows.map(r=>r.join(",")).join("\n");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="lost_found_report.csv"; a.click();
+}
+function save(){localStorage.setItem("lostItems",JSON.stringify(lostItems)); localStorage.setItem("foundItems",JSON.stringify(foundItems)); clearForm(); renderLists();}
+
+// ----- REAL-TIME SYNC -----
+window.addEventListener('storage',()=>{
+  lostItems=JSON.parse(localStorage.getItem("lostItems"))||[];
+  foundItems=JSON.parse(localStorage.getItem("foundItems"))||[];
+  renderLists();
+});
+
+// ----- PWA: REGISTER SERVICE WORKER -----
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(()=>console.log('Service Worker Registered')).catch(err=>console.log(err));
+}
 </script>
-
 </body>
 </html>

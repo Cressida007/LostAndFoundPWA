@@ -3,49 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <title>Lost & Found User Portal</title>
-<link rel="manifest" href="manifest.json">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* --- GLOBAL STYLES --- */
-* { box-sizing: border-box; font-family: Inter, sans-serif; }
-body { margin:0; padding:24px; background:#eef2f6; color:#1f2937; }
+*{box-sizing:border-box;font-family:Inter,Segoe UI,Tahoma,sans-serif}
+body{margin:0;padding:24px;background:#eef2f6;color:#1f2937}
 
-/* --- HEADER --- */
-header {
-  background:#0f172a; color:white; padding:20px; border-radius:14px; margin-bottom:20px; text-align:center;
-}
-header h1 { margin:0; }
-header p { opacity:0.8; margin-top:5px; }
+/* ===== HEADER ===== */
+header{background:#0f172a;color:white;padding:20px;border-radius:14px;margin-bottom:20px;text-align:center}
+header p{opacity:0.8;margin-top:5px}
 
-/* --- FORM --- */
-.form-container {
-  background:#fff; padding:20px; border-radius:14px; border:1px solid #e5e7eb; max-width:500px; margin:auto; margin-bottom:30px;
-}
-input, select, button { width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #d1d5db; }
-button { border:none; cursor:pointer; font-weight:600; }
-.primary { background:#2563eb; color:white; }
-.primary:hover { background:#1e40af; }
+/* ===== FORM ===== */
+.form-container{background:#fff;padding:20px;border-radius:14px;border:1px solid #e5e7eb;max-width:500px;margin:auto;margin-bottom:30px}
+input, select, button{width:100%;padding:10px;margin-bottom:10px;border-radius:10px;border:1px solid #d1d5db}
+button.primary{background:#2563eb;color:white;border:none;cursor:pointer;font-weight:600}
+button.primary:hover{background:#1e40af}
 
-/* --- PHOTO PREVIEW --- */
-#preview { width:80px; height:auto; margin:10px auto; display:block; border-radius:10px; border:1px solid #d1d5db; }
+/* ===== PHOTO PREVIEW ===== */
+#preview{width:80px;height:auto;margin:10px auto;display:block;border-radius:10px;border:1px solid #d1d5db}
 
-/* --- LISTS --- */
-.lists { display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:1000px; margin:auto; }
-.list-box { background:#fff; padding:15px; border-radius:14px; border:1px solid #e5e7eb; }
-.list-box h3 { margin-top:0; margin-bottom:10px; }
-ul { list-style:none; padding:0; margin:0; }
-li { display:flex; gap:10px; align-items:flex-start; background:#f9fafb; padding:12px; border-radius:12px; margin-bottom:10px; border-left:5px solid #2563eb; }
-li.found { border-left-color:#16a34a; }
-li img { width:60px; height:60px; border-radius:10px; flex-shrink:0; }
-.item-info { flex-grow:1; }
-.badge { display:inline-block; padding:4px 8px; font-size:0.7rem; border-radius:999px; margin-bottom:5px; }
-.status-lost { background:#fde68a; color:#92400e; }
-.status-found { background:#bbf7d0; color:#065f46; }
+/* ===== LISTS ===== */
+.lists{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin:auto}
+.list-box{background:#fff;padding:15px;border-radius:14px;border:1px solid #e5e7eb}
+.list-box h3{margin-top:0;margin-bottom:10px}
+ul{list-style:none;padding:0;margin:0}
+li{display:flex;gap:10px;align-items:flex-start;background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:10px;border-left:5px solid #2563eb}
+li.found{border-left-color:#16a34a}
+li img{width:60px;height:60px;border-radius:10px;flex-shrink:0}
+.item-info{flex-grow:1}
+.badge{display:inline-block;padding:4px 8px;font-size:0.7rem;border-radius:999px;margin-bottom:5px}
+.status-lost{background:#fde68a;color:#92400e}
+.status-found{background:#bbf7d0;color:#065f46}
 
-@media(max-width:900px){.lists{grid-template-columns:1fr;}}
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){.lists{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -80,55 +71,64 @@ li img { width:60px; height:60px; border-radius:10px; flex-shrink:0; }
 </div>
 
 <script>
-// --- DATA STORAGE ---
 let lostItems = JSON.parse(localStorage.getItem("lostItems")) || [];
 let foundItems = JSON.parse(localStorage.getItem("foundItems")) || [];
 
-// --- PHOTO PREVIEW ---
-const photoInput = document.getElementById("photo");
-const preview = document.getElementById("preview");
+const typeInput=document.getElementById("type");
+const itemInput=document.getElementById("item");
+const locationInput=document.getElementById("location");
+const nameInput=document.getElementById("name");
+const contactInput=document.getElementById("contact");
+const photoInput=document.getElementById("photo");
+const preview=document.getElementById("preview");
+const lostList=document.getElementById("lostList");
+const foundList=document.getElementById("foundList");
 
-photoInput.addEventListener("change", () => {
-  const file = photoInput.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => { preview.src = reader.result; preview.style.display = "block"; };
+// Photo preview
+photoInput.addEventListener("change", ()=>{
+  const file=photoInput.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{preview.src=reader.result;preview.style.display="block";}
   reader.readAsDataURL(file);
 });
 
-// --- ADD ITEM ---
-function addItem() {
-  const entry = {
-    type: type.value,
-    item: item.value.trim(),
-    location: location.value.trim(),
-    name: name.value.trim(),
-    contact: contact.value.trim(),
-    photo: preview.src || "",
-    date: new Date().toLocaleString(),
-    status: type.value === "lost" ? "Lost" : "Found"
+// Add item
+function addItem(){
+  if(!itemInput.value.trim()||!locationInput.value.trim()){alert("Fill item and location"); return;}
+
+  const entry={
+    type:typeInput.value,
+    item:itemInput.value.trim(),
+    location:locationInput.value.trim(),
+    name:nameInput.value.trim(),
+    contact:contactInput.value.trim(),
+    photo:preview.src||"",
+    date:new Date().toLocaleString(),
+    status:typeInput.value==="lost"?"Lost":"Found"
   };
 
-  if (entry.type === "lost") lostItems.push(entry);
+  if(entry.type==="lost") lostItems.push(entry);
   else foundItems.push(entry);
 
-  localStorage.setItem("lostItems", JSON.stringify(lostItems));
-  localStorage.setItem("foundItems", JSON.stringify(foundItems));
+  localStorage.setItem("lostItems",JSON.stringify(lostItems));
+  localStorage.setItem("foundItems",JSON.stringify(foundItems));
 
   // Reset form
-  item.value = location.value = name.value = contact.value = "";
-  preview.style.display = "none";
+  itemInput.value=locationInput.value=nameInput.value=contactInput.value="";
+  preview.style.display="none"; photoInput.value="";
+
   renderLists();
 }
 
-// --- RENDER LISTS ---
-function renderLists() {
-  lostList.innerHTML = "";
-  foundList.innerHTML = "";
+// Render lists
+function renderLists(){
+  lostList.innerHTML="";
+  foundList.innerHTML="";
 
-  lostItems.forEach(i => {
-    lostList.innerHTML += `<li>
-      <img src="${i.photo || ''}">
+  lostItems.forEach(i=>{
+    lostList.innerHTML+=`<li>
+      <img src="${i.photo||''}">
       <div class="item-info">
         <span class="badge status-lost">${i.status}</span><br>
         <b>${i.item}</b><br>${i.location}<br>${i.name}<br>${i.contact}<br>${i.date}
@@ -136,9 +136,9 @@ function renderLists() {
     </li>`;
   });
 
-  foundItems.forEach(i => {
-    foundList.innerHTML += `<li class="found">
-      <img src="${i.photo || ''}">
+  foundItems.forEach(i=>{
+    foundList.innerHTML+=`<li class="found">
+      <img src="${i.photo||''}">
       <div class="item-info">
         <span class="badge status-found">${i.status}</span><br>
         <b>${i.item}</b><br>${i.location}<br>${i.name}<br>${i.contact}<br>${i.date}
@@ -147,25 +147,24 @@ function renderLists() {
   });
 }
 
-// --- REAL-TIME SYNC ---
-window.addEventListener('storage', () => {
+// Sync across tabs
+window.addEventListener('storage',()=>{
   lostItems = JSON.parse(localStorage.getItem("lostItems")) || [];
   foundItems = JSON.parse(localStorage.getItem("foundItems")) || [];
   renderLists();
 });
 
-// --- INITIAL RENDER ---
+// Initial render
 renderLists();
 
-// --- SERVICE WORKER ---
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js")
-      .then(reg => console.log("SW registered", reg))
-      .catch(err => console.log("SW failed", err));
+// ----- PWA SERVICE WORKER -----
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(reg=>console.log('Service Worker registered', reg))
+      .catch(err=>console.error('Service Worker failed', err));
   });
 }
 </script>
-
 </body>
 </html>
