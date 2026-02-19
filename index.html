@@ -1,186 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lost & Found User Portal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- ===== CACHE REFRESH ===== -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
-  <style>
-    *{box-sizing:border-box;font-family:Inter,Segoe UI,Tahoma,sans-serif;margin:0;padding:0;}
-    body{padding:24px;background:#eef2f6;color:#1f2937;}
-    header{background:#0f172a;color:white;padding:20px;border-radius:14px;margin-bottom:20px;text-align:center;}
-    header p{opacity:0.8;margin-top:5px;}
-    .form-container{background:#fff;padding:20px;border-radius:14px;border:1px solid #e5e7eb;max-width:500px;margin:auto;margin-bottom:30px;}
-    input, select, button{width:100%;padding:10px;margin-bottom:10px;border-radius:10px;border:1px solid #d1d5db;}
-    button.primary{background:#2563eb;color:white;border:none;cursor:pointer;font-weight:600;}
-    button.primary:hover{background:#1e40af;}
-    #preview{width:80px;height:auto;margin:10px auto;display:block;border-radius:10px;border:1px solid #d1d5db;}
-    .lists{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin:auto;}
-    .list-box{background:#fff;padding:15px;border-radius:14px;border:1px solid #e5e7eb;position:relative;}
-    .list-box h3{margin-top:0;margin-bottom:10px;}
-    ul{list-style:none;padding:0;margin:0;}
-    li{display:flex;gap:10px;align-items:flex-start;background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:10px;border-left:5px solid #2563eb;position:relative;}
-    li.found{border-left-color:#16a34a;}
-    li.pet{border-left-color:#d63e00;} /* Pet category styling */
-    li img{width:60px;height:60px;border-radius:10px;flex-shrink:0;}
-    li .pet-icon{width:24px;height:24px;position:absolute;top:8px;right:8px;} /* Pet icon style to match admin */
-    .item-info{flex-grow:1;}
-    .badge{display:inline-block;padding:4px 8px;font-size:0.7rem;border-radius:999px;margin-bottom:5px;}
-    .status-lost{background:#fde68a;color:#92400e;}
-    .status-found{background:#bbf7d0;color:#065f46;}
-    @media(max-width:900px){.lists{grid-template-columns:1fr}}
-  </style>
-
-  <!-- ===== FIREBASE SDK ===== -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAfFTBbhdBAoAnl4IAiq3gjZ16lrKJHKy8",
-      authDomain: "lostandfoundpwa.firebaseapp.com",
-      projectId: "lostandfoundpwa",
-      storageBucket: "lostandfoundpwa.appspot.com",
-      messagingSenderId: "508722222682",
-      appId: "1:508722222682:web:95ff61b6b27755d5296a63"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // Elements
-    const typeInput = document.getElementById("type");
-    const itemInput = document.getElementById("item");
-    const locationInput = document.getElementById("location");
-    const nameInput = document.getElementById("name");
-    const contactInput = document.getElementById("contact");
-    const photoInput = document.getElementById("photo");
-    const preview = document.getElementById("preview");
-    const lostList = document.getElementById("lostList");
-    const foundList = document.getElementById("foundList");
-
-    // Photo preview
-    photoInput.addEventListener("change", () => {
-      const file = photoInput.files[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = () => { preview.src = reader.result; preview.style.display = "block"; };
-      reader.readAsDataURL(file);
-    });
-
-    // Add item
-    window.addItem = async () => {
-      if(!itemInput.value.trim() || !locationInput.value.trim()){
-        alert("Please fill item and location");
-        return;
-      }
-      const now = new Date();
-      const entry = {
-        type: typeInput.value,
-        item: itemInput.value.trim(),
-        location: locationInput.value.trim(),
-        name: nameInput.value.trim() || "",
-        contact: contactInput.value.trim() || "",
-        photo: preview.src || "",
-        date: now.toLocaleDateString(),
-        time: now.toLocaleTimeString(),
-        status: "Unclaimed"
-      };
-      await addDoc(collection(db,"lostAndFound"),entry);
-      itemInput.value = locationInput.value = nameInput.value = contactInput.value = "";
-      preview.src = "";
-      preview.style.display="none";
-      photoInput.value="";
-    };
-
-    // Render lists real-time
-    const renderLists = () => {
-      onSnapshot(collection(db,"lostAndFound"), snapshot => {
-        lostList.innerHTML = "";
-        foundList.innerHTML = "";
-        snapshot.docs.forEach(docSnap=>{
-          const i = docSnap.data();
-          const li = document.createElement("li");
-
-          // Classes
-          li.className = i.type === "found" ? "found" : "";
-          if(i.type === "pet") li.classList.add("pet");
-
-          // Pet icon HTML
-          const petIcon = i.type === "pet" ? `<img src="https://cdn-icons-png.flaticon.com/512/3460/3460335.png" class="pet-icon" alt="Pet">` : "";
-
-          li.innerHTML = `
-            ${petIcon}
-            <img src="${i.photo || ''}">
-            <div class="item-info">
-              <span class="badge ${i.type==="lost"?"status-lost":"status-found"}">${i.status}</span><br>
-              <b>${i.item}</b><br>
-              ${i.location}<br>
-              ${i.name}${i.contact ? " – "+i.contact:""}<br>
-              ${i.date}${i.time ? ", "+i.time:""}
-            </div>
-          `;
-          (i.type==="lost" || i.type==="pet"?lostList:foundList).appendChild(li);
-        });
-      });
-    };
-
-    renderLists();
-  </script>
+<meta charset="UTF-8">
+<title>Lost & Found User Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{box-sizing:border-box;font-family:Inter,Segoe UI,Tahoma,sans-serif;margin:0;padding:0;}
+body{padding:24px;background:#eef2f6;color:#1f2937;}
+header{background:#0f172a;color:white;padding:20px;border-radius:14px;margin-bottom:20px;text-align:center;}
+header p{opacity:0.8;margin-top:5px;}
+.form-container{background:#fff;padding:20px;border-radius:14px;border:1px solid #e5e7eb;max-width:500px;margin:auto;margin-bottom:30px;}
+input, select, button{width:100%;padding:10px;margin-bottom:10px;border-radius:10px;border:1px solid #d1d5db;}
+button.primary{background:#2563eb;color:white;border:none;cursor:pointer;font-weight:600;}
+button.primary:hover{background:#1e40af;}
+#preview{width:80px;height:auto;margin:10px auto;display:block;border-radius:10px;border:1px solid #d1d5db;}
+.lists{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin:auto;}
+.list-box{background:#fff;padding:15px;border-radius:14px;border:1px solid #e5e7eb;position:relative;}
+.list-box h3{margin-top:0;margin-bottom:10px;}
+ul{list-style:none;padding:0;margin:0;}
+li{display:flex;gap:10px;align-items:flex-start;background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:10px;border-left:5px solid #2563eb;position:relative;}
+li.found{border-left-color:#16a34a;}
+li.pet{border-left-color:#d63e00;}
+li img{width:60px;height:60px;border-radius:10px;flex-shrink:0;}
+li .pet-icon{width:24px;height:24px;position:absolute;top:8px;right:8px;}
+.item-info{flex-grow:1;}
+.badge{display:inline-block;padding:4px 8px;font-size:0.7rem;border-radius:999px;margin-bottom:5px;}
+.status-lost{background:#fde68a;color:#92400e;}
+.status-found{background:#bbf7d0;color:#065f46;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2563eb;color:white;padding:12px 24px;border-radius:12px;opacity:0;transition:opacity 0.5s;z-index:9999;}
+@media(max-width:900px){.lists{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 
 <header>
-  <h1>Lost & Found User Portal</h1>
-  <p>Report and view lost/found items</p>
+<h1>Lost & Found User Portal</h1>
+<p>Report and view lost/found/pet items</p>
 </header>
 
 <div class="form-container">
-  <h3>Report Item</h3>
-  <select id="type">
-    <option value="lost">Lost</option>
-    <option value="found">Found</option>
-    <option value="pet">Pet</option>  <!-- Added Pet category -->
-  </select>
-  <input id="item" placeholder="Item name" required>
-  <input id="location" placeholder="Location" required>
-  <input id="name" placeholder="Your name">
-  <input id="contact" placeholder="Contact number">
-  <input type="file" id="photo" accept="image/*" capture="environment">
-  <img id="preview" style="display:none;">
-  <button class="primary" onclick="addItem()">Submit</button>
+<h3>Report Item</h3>
+<select id="type">
+  <option value="lost">Lost</option>
+  <option value="found">Found</option>
+  <option value="pet">Pet</option>
+</select>
+<input id="item" placeholder="Item name" required>
+<input id="location" placeholder="Location" required>
+<input id="name" placeholder="Your name">
+<input id="contact" placeholder="Contact number">
+<input type="file" id="photo" accept="image/*">
+<img id="preview" style="display:none;">
+<button class="primary" onclick="addItem()">Submit</button>
 </div>
 
 <div class="lists">
-  <div class="list-box">
-    <h3>Lost Items</h3>
-    <ul id="lostList"></ul>
-  </div>
-  <div class="list-box">
-    <h3>Found Items</h3>
-    <ul id="foundList"></ul>
-  </div>
+<div class="list-box"><h3>Lost Items</h3><ul id="lostList"></ul></div>
+<div class="list-box"><h3>Found Items</h3><ul id="foundList"></ul></div>
 </div>
 
-<!-- Register Service Worker -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then(registration => {
-          console.log('Service Worker registered with scope:', registration.scope);
-        })
-        .catch(error => {
-          console.log('Service Worker registration failed:', error);
-        });
-    });
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAfFTBbhdBAoAnl4IAiq3gjZ16lrKJHKy8",
+  authDomain: "lostandfoundpwa.firebaseapp.com",
+  projectId: "lostandfoundpwa",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const typeInput = document.getElementById("type");
+const itemInput = document.getElementById("item");
+const locationInput = document.getElementById("location");
+const nameInput = document.getElementById("name");
+const contactInput = document.getElementById("contact");
+const photoInput = document.getElementById("photo");
+const preview = document.getElementById("preview");
+const lostList = document.getElementById("lostList");
+const foundList = document.getElementById("foundList");
+
+// Toast
+const toast = document.createElement("div");
+toast.className="toast";
+document.body.appendChild(toast);
+function showToast(msg){
+  toast.textContent = msg;
+  toast.style.opacity="1";
+  setTimeout(()=>{toast.style.opacity="0";},2500);
+}
+
+// Resize image before base64
+async function getBase64Image(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload=e=>{
+      const img = new Image();
+      img.onload=()=>{
+        const maxWidth=800;
+        const scale=Math.min(maxWidth/img.width,1);
+        const canvas=document.createElement("canvas");
+        canvas.width=img.width*scale;
+        canvas.height=img.height*scale;
+        canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL("image/jpeg",0.8));
+      };
+      img.src=e.target.result;
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Photo preview
+photoInput.addEventListener("change", async ()=>{
+  if(photoInput.files[0]){
+    preview.src = await getBase64Image(photoInput.files[0]);
+    preview.style.display="block";
   }
+});
+
+window.addItem = async ()=>{
+  if(!itemInput.value.trim() || !locationInput.value.trim()){ alert("Please fill item and location"); return; }
+  const now = new Date();
+  const photoBase64 = preview.src || "";
+
+  const entry = {
+    type: typeInput.value,
+    item: itemInput.value.trim(),
+    location: locationInput.value.trim(),
+    name: nameInput.value.trim(),
+    contact: contactInput.value.trim(),
+    photo: photoBase64,
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString(),
+    status: "Unclaimed"
+  };
+
+  try{
+    await addDoc(collection(db,"lostAndFound"),entry);
+    // clear form
+    itemInput.value = locationInput.value = nameInput.value = contactInput.value = "";
+    preview.src = ""; preview.style.display="none"; photoInput.value="";
+    showToast("Item uploaded successfully!");
+  }catch(e){ console.error(e); showToast("Upload failed!"); }
+};
+
+// Render lists
+onSnapshot(collection(db,"lostAndFound"), snapshot=>{
+  lostList.innerHTML=""; foundList.innerHTML="";
+  snapshot.docs.forEach(async docSnap=>{
+    const i = docSnap.data();
+    const li = document.createElement("li");
+    li.className = i.type==="found"?"found":(i.type==="pet"?"pet":"");
+    const petIcon = i.type==="pet"?`<img src="https://cdn-icons-png.flaticon.com/512/3460/3460335.png" class="pet-icon" alt="Pet">`:"";
+    const imgSrc = i.photo || "";
+
+    li.innerHTML = `${petIcon}<img src="${imgSrc}"><div class="item-info">
+      <span class="badge ${i.status==="Claimed"?"status-found":"status-lost"}">${i.status}</span><br>
+      <b>${i.item}</b><br>
+      ${i.location}<br>
+      ${i.name}${i.contact?" – "+i.contact:""}<br>
+      ${i.date}${i.time?", "+i.time:""}<br>
+      <button onclick="claimItem('${docSnap.id}')">Claim</button>
+    </div>`;
+
+    if(i.status==="Claimed" || i.type==="found") foundList.appendChild(li);
+    else lostList.appendChild(li);
+  });
+});
+
+window.claimItem = async docId=>{
+  const d = doc(db,"lostAndFound",docId);
+  const snapshot = await getDoc(d);
+  if(!snapshot.exists()) return;
+  await updateDoc(d,{status:"Claimed"});
+  showToast("Item claimed!");
+};
 </script>
 
 </body>
