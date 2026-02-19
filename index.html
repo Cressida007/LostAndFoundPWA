@@ -29,6 +29,18 @@ li .pet-icon{width:24px;height:24px;position:absolute;top:8px;right:8px;}
 .status-found{background:#bbf7d0;color:#065f46;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2563eb;color:white;padding:12px 24px;border-radius:12px;opacity:0;transition:opacity 0.5s;z-index:9999;}
 @media(max-width:900px){.lists{grid-template-columns:1fr}}
+
+/* Mobile-friendly date/time styling */
+input[type="date"], input[type="time"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-family: Inter,Segoe UI,Tahoma,sans-serif;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
 </style>
 </head>
 <body>
@@ -49,8 +61,11 @@ li .pet-icon{width:24px;height:24px;position:absolute;top:8px;right:8px;}
 <input id="location" placeholder="Location" required>
 <input id="name" placeholder="Your name">
 <input id="contact" placeholder="Contact number">
-<input type="file" id="photo" accept="image/*" capture="filesystem">
+<input type="file" id="photo" accept="image/*">
 <img id="preview" style="display:none;">
+<!-- Mobile- and desktop-friendly date/time inputs -->
+<input id="date" type="date" required>
+<input id="time" type="time" required>
 <button class="primary" onclick="addItem()">Submit</button>
 </div>
 
@@ -79,6 +94,8 @@ const nameInput = document.getElementById("name");
 const contactInput = document.getElementById("contact");
 const photoInput = document.getElementById("photo");
 const preview = document.getElementById("preview");
+const dateInput = document.getElementById("date");
+const timeInput = document.getElementById("time");
 const lostList = document.getElementById("lostList");
 const foundList = document.getElementById("foundList");
 
@@ -134,8 +151,8 @@ window.addItem = async ()=>{
     name: nameInput.value.trim(),
     contact: contactInput.value.trim(),
     photo: photoBase64,
-    date: now.toLocaleDateString(),
-    time: now.toLocaleTimeString(),
+    date: dateInput.value || now.toISOString().split("T")[0],
+    time: timeInput.value || now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
     status: "Unclaimed"
   };
 
@@ -143,7 +160,7 @@ window.addItem = async ()=>{
     await addDoc(collection(db,"lostAndFound"),entry);
     // clear form
     itemInput.value = locationInput.value = nameInput.value = contactInput.value = "";
-    preview.src = ""; preview.style.display="none"; photoInput.value="";
+    preview.src = ""; preview.style.display="none"; photoInput.value=""; dateInput.value=""; timeInput.value="";
     showToast("Item uploaded successfully!");
   }catch(e){ console.error(e); showToast("Upload failed!"); }
 };

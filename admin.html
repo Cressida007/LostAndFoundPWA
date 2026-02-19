@@ -51,6 +51,18 @@ li img{width:60px;height:60px;border-radius:10px;flex-shrink:0;}
   z-index: 9999;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
+
+/* Mobile-friendly date/time styling */
+input[type="date"], input[type="time"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-family: Inter,Segoe UI,Tahoma,sans-serif;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
 </style>
 
 <script type="module">
@@ -258,10 +270,10 @@ renderLists();
   <input id="location" placeholder="Location">
   <input id="name" placeholder="Contact name">
   <input id="contact" placeholder="Contact">
-  <input type="file" id="photo" accept="image/* " capture="filesystem>
+  <input type="file" id="photo" accept="image/*">
   <img id="preview" style="display:none;width:80px;height:80px;margin-bottom:10px;">
-  <input id="date" type="date">
-  <input id="time" type="time">
+  <input id="date" type="date" required>
+  <input id="time" type="time" required>
   <button class="primary" onclick="addItem()">Save</button>
   <button class="secondary" onclick="clearForm()">Cancel</button>
   <hr>
