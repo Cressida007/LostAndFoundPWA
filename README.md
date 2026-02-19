@@ -44,5 +44,5 @@ git clone https://github.com/Cressida007/LostAndFoundPWA.git
 2. Optional: install as a PWA for offline use.
 
 ## ⚡ Live Demo
-**Admin panel**: https://cressida007.github.io/LostAndFoundPWA/admin.html
-**Public interface**: https://cressida007.github.io/LostAndFoundPWA/
+- **Admin panel**: https://cressida007.github.io/LostAndFoundPWA/admin.html
+- **Public interface**: https://cressida007.github.io/LostAndFoundPWA/
