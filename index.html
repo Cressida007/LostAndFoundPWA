@@ -184,7 +184,7 @@ function card(i,type,idx){
       <b>${i.item||""}</b><br>
       ${i.location||""}<br>
       ${i.name||""} ${i.contact?"– "+i.contact:""}<br>
-      ${(i.date||"")} ${(i.time||"")}
+    ${i.date ? i.date : ""}${i.time ? ", " + i.time : ""}
       <div class="actions">
         <button class="edit" onclick="editItem('${type}',${idx})">Edit</button>
         <button class="claim" onclick="toggleStatus('${type}',${idx})">Claim</button>
