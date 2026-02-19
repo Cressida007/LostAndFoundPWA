@@ -19,7 +19,7 @@ Welcome to the **Lost & Found PWA** project! 🚀 This application helps users r
 
 ## 💡 Demo & Live App:
 You can access the live version of the app below:
-- **Admin Panel**: [Admin Panel](https://lostandfoundpwa.web.app/admin)
+- **Admin Panel**: [Admin Panel](https://lostandfoundpwa.web.app/admin.html)
 - **User Portal**: [User Portal](https://lostandfoundpwa.web.app/)
 
 ## 💬 Contribute:
