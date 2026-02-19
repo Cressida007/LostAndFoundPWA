@@ -28,19 +28,9 @@ li .pet-icon{width:24px;height:24px;position:absolute;top:8px;right:8px;}
 .status-lost{background:#fde68a;color:#92400e;}
 .status-found{background:#bbf7d0;color:#065f46;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#2563eb;color:white;padding:12px 24px;border-radius:12px;opacity:0;transition:opacity 0.5s;z-index:9999;}
+.date-time-picker{display:flex;gap:5px;margin-bottom:10px;}
+.date-time-picker select{flex:1;}
 @media(max-width:900px){.lists{grid-template-columns:1fr}}
-
-/* Mobile-friendly date/time styling */
-input[type="date"], input[type="time"] {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-family: Inter,Segoe UI,Tahoma,sans-serif;
-  font-size: 0.95rem;
-  box-sizing: border-box;
-}
 </style>
 </head>
 <body>
@@ -53,6 +43,7 @@ input[type="date"], input[type="time"] {
 <div class="form-container">
 <h3>Report Item</h3>
 <select id="type">
+  <option value="">Select Type</option>
   <option value="lost">Lost</option>
   <option value="found">Found</option>
   <option value="pet">Pet</option>
@@ -63,9 +54,21 @@ input[type="date"], input[type="time"] {
 <input id="contact" placeholder="Contact number">
 <input type="file" id="photo" accept="image/*">
 <img id="preview" style="display:none;">
-<!-- Mobile- and desktop-friendly date/time inputs -->
-<input id="date" type="date" required>
-<input id="time" type="time" required>
+
+<!-- Date picker -->
+<div class="date-time-picker">
+  <select id="day"></select>
+  <select id="month"></select>
+  <select id="year"></select>
+</div>
+
+<!-- Time picker -->
+<div class="date-time-picker">
+  <select id="hour"></select>
+  <select id="minute"></select>
+  <select id="ampm"></select>
+</div>
+
 <button class="primary" onclick="addItem()">Submit</button>
 </div>
 
@@ -94,10 +97,16 @@ const nameInput = document.getElementById("name");
 const contactInput = document.getElementById("contact");
 const photoInput = document.getElementById("photo");
 const preview = document.getElementById("preview");
-const dateInput = document.getElementById("date");
-const timeInput = document.getElementById("time");
 const lostList = document.getElementById("lostList");
 const foundList = document.getElementById("foundList");
+
+// Date & Time selects
+const dayInput = document.getElementById("day");
+const monthInput = document.getElementById("month");
+const yearInput = document.getElementById("year");
+const hourInput = document.getElementById("hour");
+const minuteInput = document.getElementById("minute");
+const ampmInput = document.getElementById("ampm");
 
 // Toast
 const toast = document.createElement("div");
@@ -109,18 +118,49 @@ function showToast(msg){
   setTimeout(()=>{toast.style.opacity="0";},2500);
 }
 
+// Initialize date picker with placeholders
+function initDateTimePickers(){
+  // Day
+  const placeholderDay = document.createElement("option"); placeholderDay.textContent="Day"; placeholderDay.value=""; placeholderDay.disabled=true; placeholderDay.selected=true; dayInput.appendChild(placeholderDay);
+  for(let d=1;d<=31;d++){ const opt=document.createElement("option"); opt.value=opt.textContent=d.toString().padStart(2,'0'); dayInput.appendChild(opt); }
+
+  // Month
+  const placeholderMonth = document.createElement("option"); placeholderMonth.textContent="Month"; placeholderMonth.value=""; placeholderMonth.disabled=true; placeholderMonth.selected=true; monthInput.appendChild(placeholderMonth);
+  ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].forEach((m,i)=>{
+    const opt=document.createElement("option"); opt.value=i+1; opt.textContent=m; monthInput.appendChild(opt);
+  });
+
+  // Year
+  const placeholderYear = document.createElement("option"); placeholderYear.textContent="Year"; placeholderYear.value=""; placeholderYear.disabled=true; placeholderYear.selected=true; yearInput.appendChild(placeholderYear);
+  const currentYear = new Date().getFullYear();
+  for(let y=currentYear-5;y<=currentYear+5;y++){ const opt=document.createElement("option"); opt.value=opt.textContent=y; yearInput.appendChild(opt); }
+
+  // Hour
+  const placeholderHour = document.createElement("option"); placeholderHour.textContent="Hour"; placeholderHour.value=""; placeholderHour.disabled=true; placeholderHour.selected=true; hourInput.appendChild(placeholderHour);
+  for(let h=1;h<=12;h++){ const opt=document.createElement("option"); opt.value=opt.textContent=h.toString().padStart(2,'0'); hourInput.appendChild(opt); }
+
+  // Minute
+  const placeholderMinute = document.createElement("option"); placeholderMinute.textContent="Minute"; placeholderMinute.value=""; placeholderMinute.disabled=true; placeholderMinute.selected=true; minuteInput.appendChild(placeholderMinute);
+  for(let m=0;m<60;m++){ const opt=document.createElement("option"); opt.value=opt.textContent=m.toString().padStart(2,'0'); minuteInput.appendChild(opt); }
+
+  // AM/PM
+  const placeholderAMPM = document.createElement("option"); placeholderAMPM.textContent="AM/PM"; placeholderAMPM.value=""; placeholderAMPM.disabled=true; placeholderAMPM.selected=true; ampmInput.appendChild(placeholderAMPM);
+  ["AM","PM"].forEach(v=>{ const opt=document.createElement("option"); opt.value=opt.textContent=v; ampmInput.appendChild(opt); });
+}
+
+initDateTimePickers();
+
 // Resize image before base64
 async function getBase64Image(file){
   return new Promise((resolve,reject)=>{
-    const reader = new FileReader();
+    const reader=new FileReader();
     reader.onload=e=>{
-      const img = new Image();
+      const img=new Image();
       img.onload=()=>{
         const maxWidth=800;
         const scale=Math.min(maxWidth/img.width,1);
         const canvas=document.createElement("canvas");
-        canvas.width=img.width*scale;
-        canvas.height=img.height*scale;
+        canvas.width=img.width*scale; canvas.height=img.height*scale;
         canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
         resolve(canvas.toDataURL("image/jpeg",0.8));
       };
@@ -134,33 +174,39 @@ async function getBase64Image(file){
 // Photo preview
 photoInput.addEventListener("change", async ()=>{
   if(photoInput.files[0]){
-    preview.src = await getBase64Image(photoInput.files[0]);
+    preview.src=await getBase64Image(photoInput.files[0]);
     preview.style.display="block";
   }
 });
 
 window.addItem = async ()=>{
-  if(!itemInput.value.trim() || !locationInput.value.trim()){ alert("Please fill item and location"); return; }
-  const now = new Date();
+  if(!itemInput.value.trim() || !locationInput.value.trim() || !dayInput.value || !monthInput.value || !yearInput.value || !hourInput.value || !minuteInput.value || !ampmInput.value){
+    alert("Please fill all required fields including date and time.");
+    return;
+  }
   const photoBase64 = preview.src || "";
+  const dateStr = `${yearInput.value}-${monthInput.value.toString().padStart(2,'0')}-${dayInput.value.toString().padStart(2,'0')}`;
+  const timeStr = `${hourInput.value.toString().padStart(2,'0')}:${minuteInput.value.toString().padStart(2,'0')} ${ampmInput.value}`;
 
   const entry = {
-    type: typeInput.value,
-    item: itemInput.value.trim(),
-    location: locationInput.value.trim(),
-    name: nameInput.value.trim(),
-    contact: contactInput.value.trim(),
-    photo: photoBase64,
-    date: dateInput.value || now.toISOString().split("T")[0],
-    time: timeInput.value || now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
-    status: "Unclaimed"
+    type:typeInput.value,
+    item:itemInput.value.trim(),
+    location:locationInput.value.trim(),
+    name:nameInput.value.trim(),
+    contact:contactInput.value.trim(),
+    photo:photoBase64,
+    date:dateStr,
+    time:timeStr,
+    status:"Unclaimed"
   };
 
   try{
     await addDoc(collection(db,"lostAndFound"),entry);
-    // clear form
-    itemInput.value = locationInput.value = nameInput.value = contactInput.value = "";
-    preview.src = ""; preview.style.display="none"; photoInput.value=""; dateInput.value=""; timeInput.value="";
+    // Clear form
+    itemInput.value=locationInput.value=nameInput.value=contactInput.value="";
+    preview.src=""; preview.style.display="none"; photoInput.value="";
+    dayInput.selectedIndex=monthInput.selectedIndex=yearInput.selectedIndex=0;
+    hourInput.selectedIndex=minuteInput.selectedIndex=ampmInput.selectedIndex=0;
     showToast("Item uploaded successfully!");
   }catch(e){ console.error(e); showToast("Upload failed!"); }
 };
@@ -169,28 +215,26 @@ window.addItem = async ()=>{
 onSnapshot(collection(db,"lostAndFound"), snapshot=>{
   lostList.innerHTML=""; foundList.innerHTML="";
   snapshot.docs.forEach(async docSnap=>{
-    const i = docSnap.data();
-    const li = document.createElement("li");
-    li.className = i.type==="found"?"found":(i.type==="pet"?"pet":"");
-    const petIcon = i.type==="pet"?`<img src="https://cdn-icons-png.flaticon.com/512/3460/3460335.png" class="pet-icon" alt="Pet">`:"";
-    const imgSrc = i.photo || "";
-
-    li.innerHTML = `${petIcon}<img src="${imgSrc}"><div class="item-info">
+    const i=docSnap.data();
+    const li=document.createElement("li");
+    li.className=i.type==="found"?"found":(i.type==="pet"?"pet":"");
+    const petIcon=i.type==="pet"?`<img src="https://cdn-icons-png.flaticon.com/512/3460/3460335.png" class="pet-icon" alt="Pet">`:"";
+    const imgSrc=i.photo||"";
+    li.innerHTML=`${petIcon}<img src="${imgSrc}"><div class="item-info">
       <span class="badge ${i.status==="Claimed"?"status-found":"status-lost"}">${i.status}</span><br>
       <b>${i.item}</b><br>
       ${i.location}<br>
       ${i.name}${i.contact?" – "+i.contact:""}<br>
-      ${i.date}${i.time?", "+i.time:""}<br>
+      ${i.date} ${i.time}<br>
       <button onclick="claimItem('${docSnap.id}')">Claim</button>
     </div>`;
-
     if(i.status==="Claimed" || i.type==="found") foundList.appendChild(li);
     else lostList.appendChild(li);
   });
 });
 
 window.claimItem = async docId=>{
-  const d = doc(db,"lostAndFound",docId);
+  const d=doc(db,"lostAndFound",docId);
   const snapshot = await getDoc(d);
   if(!snapshot.exists()) return;
   await updateDoc(d,{status:"Claimed"});

@@ -52,17 +52,9 @@ li img{width:60px;height:60px;border-radius:10px;flex-shrink:0;}
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-/* Mobile-friendly date/time styling */
-input[type="date"], input[type="time"] {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-family: Inter,Segoe UI,Tahoma,sans-serif;
-  font-size: 0.95rem;
-  box-sizing: border-box;
-}
+/* Spinner-style date/time pickers */
+.date-time-picker{display:flex;gap:5px;margin-bottom:10px;}
+.date-time-picker select{flex:1;}
 </style>
 
 <script type="module">
@@ -91,11 +83,17 @@ const photoInput = document.getElementById("photo");
 const preview = document.getElementById("preview");
 const lostList = document.getElementById("lostList");
 const foundList = document.getElementById("foundList");
-const dateInput = document.getElementById("date");
-const timeInput = document.getElementById("time");
 const searchInput = document.getElementById("search");
 
-// Toast function
+// Spinner-style date/time pickers
+const dayInput = document.getElementById("day");
+const monthInput = document.getElementById("month");
+const yearInput = document.getElementById("year");
+const hourInput = document.getElementById("hour");
+const minuteInput = document.getElementById("minute");
+const ampmInput = document.getElementById("ampm");
+
+// Toast
 function showToast(message="Upload finished!", duration=2500){
   const toast = document.getElementById("toast");
   toast.innerText = message;
@@ -115,25 +113,56 @@ window.login = () => {
   } else alert("Invalid PIN");
 };
 
+// Initialize date/time spinners with placeholders
+function initDateTimePickers(){
+  // Day
+  const placeholderDay = document.createElement("option"); placeholderDay.textContent="Day"; placeholderDay.value=""; placeholderDay.disabled=true; placeholderDay.selected=true; dayInput.appendChild(placeholderDay);
+  for(let d=1;d<=31;d++){ const opt=document.createElement("option"); opt.value=d.toString().padStart(2,'0'); opt.textContent=d.toString().padStart(2,'0'); dayInput.appendChild(opt); }
+
+  // Month
+  const placeholderMonth = document.createElement("option"); placeholderMonth.textContent="Month"; placeholderMonth.value=""; placeholderMonth.disabled=true; placeholderMonth.selected=true; monthInput.appendChild(placeholderMonth);
+  ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].forEach((m,i)=>{
+    const opt=document.createElement("option"); opt.value=i+1; opt.textContent=m; monthInput.appendChild(opt);
+  });
+
+  // Year
+  const placeholderYear = document.createElement("option"); placeholderYear.textContent="Year"; placeholderYear.value=""; placeholderYear.disabled=true; placeholderYear.selected=true; yearInput.appendChild(placeholderYear);
+  const currentYear = new Date().getFullYear();
+  for(let y=currentYear-5;y<=currentYear+5;y++){ const opt=document.createElement("option"); opt.value=opt.textContent=y; yearInput.appendChild(opt); }
+
+  // Hour
+  const placeholderHour = document.createElement("option"); placeholderHour.textContent="Hour"; placeholderHour.value=""; placeholderHour.disabled=true; placeholderHour.selected=true; hourInput.appendChild(placeholderHour);
+  for(let h=1;h<=12;h++){ const opt=document.createElement("option"); opt.value=opt.textContent=h.toString().padStart(2,'0'); hourInput.appendChild(opt); }
+
+  // Minute
+  const placeholderMinute = document.createElement("option"); placeholderMinute.textContent="Minute"; placeholderMinute.value=""; placeholderMinute.disabled=true; placeholderMinute.selected=true; minuteInput.appendChild(placeholderMinute);
+  for(let m=0;m<60;m++){ const opt=document.createElement("option"); opt.value=opt.textContent=m.toString().padStart(2,'0'); minuteInput.appendChild(opt); }
+
+  // AM/PM
+  const placeholderAMPM = document.createElement("option"); placeholderAMPM.textContent="AM/PM"; placeholderAMPM.value=""; placeholderAMPM.disabled=true; placeholderAMPM.selected=true; ampmInput.appendChild(placeholderAMPM);
+  ["AM","PM"].forEach(v=>{ const opt=document.createElement("option"); opt.value=opt.textContent=v; ampmInput.appendChild(opt); });
+}
+
+initDateTimePickers();
+
 // Resize image before Base64
 async function getBase64Image(file){
   return new Promise((resolve,reject)=>{
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = e=>{
       const img = new Image();
-      img.onload = () => {
+      img.onload = ()=>{
         const maxWidth = 800;
         const scale = Math.min(maxWidth/img.width,1);
         const canvas = document.createElement("canvas");
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        canvas.width = img.width*scale;
+        canvas.height = img.height*scale;
+        canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
         resolve(canvas.toDataURL("image/jpeg",0.8));
       };
-      img.src = e.target.result;
+      img.src=e.target.result;
     };
-    reader.onerror = reject;
+    reader.onerror=reject;
     reader.readAsDataURL(file);
   });
 }
@@ -141,25 +170,30 @@ async function getBase64Image(file){
 photoInput.addEventListener("change", async ()=>{
   if(photoInput.files[0]){
     preview.src = await getBase64Image(photoInput.files[0]);
-    preview.style.display="block";
+    preview.style.display = "block";
   }
 });
 
 window.addItem = async ()=>{
-  if(!itemInput.value.trim()||!locationInput.value.trim()){alert("Please fill item and location"); return;}
-  const now = new Date();
+  if(!itemInput.value.trim()||!locationInput.value.trim()||!dayInput.value||!monthInput.value||!yearInput.value||!hourInput.value||!minuteInput.value||!ampmInput.value){
+    alert("Please fill all required fields including date and time.");
+    return;
+  }
+
   const photoBase64 = preview.src || "";
+  const dateStr = `${yearInput.value}-${monthInput.value.toString().padStart(2,'0')}-${dayInput.value.toString().padStart(2,'0')}`;
+  const timeStr = `${hourInput.value.toString().padStart(2,'0')}:${minuteInput.value.toString().padStart(2,'0')} ${ampmInput.value}`;
 
   const entry = {
-    type: typeSelect.value,
-    item: itemInput.value.trim(),
-    location: locationInput.value.trim(),
-    name: nameInput.value.trim(),
-    contact: contactInput.value.trim(),
-    photo: photoBase64,
-    date: dateInput.value || now.toISOString().split("T")[0],
-    time: timeInput.value || now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
-    status: "Unclaimed"
+    type:typeSelect.value,
+    item:itemInput.value.trim(),
+    location:locationInput.value.trim(),
+    name:nameInput.value.trim(),
+    contact:contactInput.value.trim(),
+    photo:photoBase64,
+    date:dateStr,
+    time:timeStr,
+    status:"Unclaimed"
   };
 
   try{
@@ -172,12 +206,14 @@ window.addItem = async ()=>{
       showToast("Upload finished!");
     }
     clearForm();
-  } catch(e){console.error(e); alert("Failed to save item");}
+  }catch(e){ console.error(e); alert("Failed to save item"); }
 };
 
 function clearForm(){
-  itemInput.value=locationInput.value=nameInput.value=contactInput.value=dateInput.value=timeInput.value="";
+  itemInput.value=locationInput.value=nameInput.value=contactInput.value="";
   preview.src=""; preview.style.display="none"; editDocId=null; photoInput.value=null;
+  dayInput.selectedIndex=monthInput.selectedIndex=yearInput.selectedIndex=0;
+  hourInput.selectedIndex=minuteInput.selectedIndex=ampmInput.selectedIndex=0;
 }
 
 function renderLists(){
@@ -189,20 +225,18 @@ function renderLists(){
       li.className = i.type==="found"?"found":(i.type==="pet"?"pet":"");
       const petIcon = i.type==="pet"?`<img src="https://cdn-icons-png.flaticon.com/512/3460/3460335.png" class="pet-icon" alt="Pet">`:"";
       const imgSrc = i.photo || "";
-
       li.innerHTML = `${petIcon}<img src="${imgSrc}"><div>
         <span class="badge ${i.status==="Claimed"?"claimed":"unclaimed"}">${i.status}</span><br>
         <strong>${i.item}</strong><br>
         ${i.location}<br>
         ${i.name} ${i.contact?"– "+i.contact:""}<br>
-        ${i.date}${i.time?", "+i.time:""}
+        ${i.date} ${i.time}
         <div class="actions">
           <button class="edit" onclick="editItem('${docSnap.id}')">Edit</button>
           <button class="claim" onclick="toggleStatus('${docSnap.id}')">Claim</button>
           <button class="delete" onclick="deleteItem('${docSnap.id}')">Delete</button>
         </div>
       </div>`;
-
       if(i.status==="Claimed" || i.type==="found") foundList.appendChild(li);
       else lostList.appendChild(li);
     });
@@ -218,19 +252,19 @@ window.editItem = async docId=>{
   locationInput.value=i.location;
   nameInput.value=i.name;
   contactInput.value=i.contact;
-  dateInput.value=i.date;
-  timeInput.value=i.time;
-  preview.src=i.photo||"";
-  preview.style.display=i.photo?"block":"none";
+  preview.src=i.photo||""; preview.style.display=i.photo?"block":"none";
+  // Set spinners
+  const [y,m,d] = i.date.split("-"); dayInput.value=d; monthInput.value=parseInt(m); yearInput.value=y;
+  const [time,ampm] = i.time.split(" "); const [h,min] = time.split(":"); hourInput.value=h; minuteInput.value=min; ampmInput.value=ampm;
   editDocId=docId;
 };
 
 window.toggleStatus = async docId=>{
-  const d = doc(db,"lostAndFound",docId);
+  const d=doc(db,"lostAndFound",docId);
   const snapshot = await getDoc(d);
   if(!snapshot.exists()) return;
-  const i = snapshot.data();
-  const newStatus = i.status==="Claimed"?"Unclaimed":"Claimed";
+  const i=snapshot.data();
+  const newStatus=i.status==="Claimed"?"Unclaimed":"Claimed";
   await updateDoc(d,{status:newStatus});
   if(newStatus==="Claimed") showToast("Item marked as claimed!");
 };
@@ -262,6 +296,7 @@ renderLists();
 <div class="form">
   <h3>Add / Edit Item</h3>
   <select id="type">
+    <option value="">Select Type</option>
     <option value="lost">Lost</option>
     <option value="found">Found</option>
     <option value="pet">Pet</option>
@@ -272,8 +307,21 @@ renderLists();
   <input id="contact" placeholder="Contact">
   <input type="file" id="photo" accept="image/*">
   <img id="preview" style="display:none;width:80px;height:80px;margin-bottom:10px;">
-  <input id="date" type="date" required>
-  <input id="time" type="time" required>
+
+  <!-- Date picker -->
+  <div class="date-time-picker">
+    <select id="day"></select>
+    <select id="month"></select>
+    <select id="year"></select>
+  </div>
+
+  <!-- Time picker -->
+  <div class="date-time-picker">
+    <select id="hour"></select>
+    <select id="minute"></select>
+    <select id="ampm"></select>
+  </div>
+
   <button class="primary" onclick="addItem()">Save</button>
   <button class="secondary" onclick="clearForm()">Cancel</button>
   <hr>
