@@ -21,12 +21,14 @@
     button.primary:hover{background:#1e40af;}
     #preview{width:80px;height:auto;margin:10px auto;display:block;border-radius:10px;border:1px solid #d1d5db;}
     .lists{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1000px;margin:auto;}
-    .list-box{background:#fff;padding:15px;border-radius:14px;border:1px solid #e5e7eb;}
+    .list-box{background:#fff;padding:15px;border-radius:14px;border:1px solid #e5e7eb;position:relative;}
     .list-box h3{margin-top:0;margin-bottom:10px;}
     ul{list-style:none;padding:0;margin:0;}
-    li{display:flex;gap:10px;align-items:flex-start;background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:10px;border-left:5px solid #2563eb;}
+    li{display:flex;gap:10px;align-items:flex-start;background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:10px;border-left:5px solid #2563eb;position:relative;}
     li.found{border-left-color:#16a34a;}
+    li.pet{border-left-color:#d63e00;} /* Pet category styling */
     li img{width:60px;height:60px;border-radius:10px;flex-shrink:0;}
+    li .pet-icon{width:24px;height:24px;position:absolute;top:8px;right:8px;} /* Pet icon style to match admin */
     .item-info{flex-grow:1;}
     .badge{display:inline-block;padding:4px 8px;font-size:0.7rem;border-radius:999px;margin-bottom:5px;}
     .status-lost{background:#fde68a;color:#92400e;}
@@ -105,8 +107,16 @@
         snapshot.docs.forEach(docSnap=>{
           const i = docSnap.data();
           const li = document.createElement("li");
-          li.className = i.type==="found"?"found":"";  // Apply 'found' class for found items
+
+          // Classes
+          li.className = i.type === "found" ? "found" : "";
+          if(i.type === "pet") li.classList.add("pet");
+
+          // Pet icon HTML
+          const petIcon = i.type === "pet" ? `<img src="https://cdn-icons-png.flaticon.com/512/3460/3460335.png" class="pet-icon" alt="Pet">` : "";
+
           li.innerHTML = `
+            ${petIcon}
             <img src="${i.photo || ''}">
             <div class="item-info">
               <span class="badge ${i.type==="lost"?"status-lost":"status-found"}">${i.status}</span><br>
@@ -116,7 +126,7 @@
               ${i.date}${i.time ? ", "+i.time:""}
             </div>
           `;
-          (i.type==="lost"?lostList:foundList).appendChild(li);
+          (i.type==="lost" || i.type==="pet"?lostList:foundList).appendChild(li);
         });
       });
     };
@@ -136,6 +146,7 @@
   <select id="type">
     <option value="lost">Lost</option>
     <option value="found">Found</option>
+    <option value="pet">Pet</option>  <!-- Added Pet category -->
   </select>
   <input id="item" placeholder="Item name" required>
   <input id="location" placeholder="Location" required>

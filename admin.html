@@ -1,196 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Lost & Found Admin Panel</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Lost & Found Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ===== CACHE REFRESH ===== -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+  <!-- ===== CACHE REFRESH ===== -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
-<style>
-*{box-sizing:border-box;font-family:Inter,Segoe UI,Tahoma,sans-serif;margin:0;padding:0;}
-body{background:#eef2f6;color:#1f2937;padding:20px;}
-#login{display:flex;justify-content:center;align-items:center;height:100vh;}
-.login-card{background:#fff;padding:30px;border-radius:14px;width:320px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
-.login-card input, .login-card button{width:100%;padding:12px;margin-top:10px;border-radius:10px;border:1px solid #d1d5db;}
-button.primary{background:#2563eb;color:white;border:none;cursor:pointer;font-weight:600;}
-button.primary:hover{background:#1e40af;}
-#admin{display:none;}
-header{background:#0f172a;color:white;padding:22px;border-radius:14px;margin-bottom:20px;text-align:center;}
-.container{display:grid;grid-template-columns:340px 1fr;gap:20px;}
-.form{background:#fff;padding:20px;border-radius:14px;border:1px solid #e5e7eb;}
-input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10px;border:1px solid #d1d5db;}
-button.secondary{background:#e5e7eb;border:none;cursor:pointer;font-weight:600;}
-.lists{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
-.list-box{background:#fff;padding:15px;border-radius:14px;border:1px solid #e5e7eb;}
-li{background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:10px;border-left:5px solid #2563eb;font-size:0.9rem;display:flex;gap:10px;align-items:flex-start;}
-li.found{border-left-color:#16a34a;}
-li img{width:60px;height:60px;border-radius:10px;flex-shrink:0;}
-.badge{display:inline-block;padding:4px 8px;font-size:0.7rem;border-radius:999px;margin-bottom:5px;}
-.unclaimed{background:#fde68a;color:#92400e;}
-.claimed{background:#bbf7d0;color:#065f46;}
-.actions{display:flex;gap:6px;margin-top:8px;}
-.edit{background:#fbbf24;border:none;color:white;padding:4px 6px;border-radius:6px;cursor:pointer;}
-.delete{background:#dc2626;color:white;padding:4px 6px;border-radius:6px;cursor:pointer;}
-.claim{background:#16a34a;color:white;border:none;border-radius:6px;padding:4px 6px;cursor:pointer;}
-@media(max-width:900px){.container,.lists{grid-template-columns:1fr;}}
-</style>
+  <style>
+    *{box-sizing:border-box;font-family:Inter,Segoe UI,Tahoma,sans-serif;margin:0;padding:0;}
+    body{background:#eef2f6;color:#1f2937;padding:20px;}
+    #login{display:flex;justify-content:center;align-items:center;height:100vh;}
+    .login-card{background:#fff;padding:30px;border-radius:14px;width:320px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+    .login-card input, .login-card button{width:100%;padding:12px;margin-top:10px;border-radius:10px;border:1px solid #d1d5db;}
+    button.primary{background:#2563eb;color:white;border:none;cursor:pointer;font-weight:600;}
+    button.primary:hover{background:#1e40af;}
+    #admin{display:none;}
+    header{background:#0f172a;color:white;padding:22px;border-radius:14px;margin-bottom:20px;text-align:center;}
+    .container{display:grid;grid-template-columns:340px 1fr;gap:20px;}
+    .form{background:#fff;padding:20px;border-radius:14px;border:1px solid #e5e7eb;}
+    input,select,button{width:100%;padding:10px;margin-bottom:10px;border-radius:10px;border:1px solid #d1d5db;}
+    button.secondary{background:#e5e7eb;border:none;cursor:pointer;font-weight:600;}
+    .lists{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+    .list-box{background:#fff;padding:15px;border-radius:14px;border:1px solid #e5e7eb;}
+    li{background:#f9fafb;padding:12px;border-radius:12px;margin-bottom:10px;border-left:5px solid #2563eb;font-size:0.9rem;display:flex;gap:10px;align-items:flex-start;}
+    li.found{border-left-color:#16a34a;}
+    li.pet{border-left-color:#d63e00;background:#fff3f0;} /* Custom styling for pet items */
+    li img{width:60px;height:60px;border-radius:10px;flex-shrink:0;}
+    .badge{display:inline-block;padding:4px 8px;font-size:0.7rem;border-radius:999px;margin-bottom:5px;}
+    .unclaimed{background:#fde68a;color:#92400e;}
+    .claimed{background:#bbf7d0;color:#065f46;}
+    .actions{display:flex;gap:6px;margin-top:8px;}
+    .edit{background:#fbbf24;border:none;color:white;padding:4px 6px;border-radius:6px;cursor:pointer;}
+    .delete{background:#dc2626;color:white;padding:4px 6px;border-radius:6px;cursor:pointer;}
+    .claim{background:#16a34a;color:white;border:none;border-radius:6px;padding:4px 6px;cursor:pointer;}
+    @media(max-width:900px){.container,.lists{grid-template-columns:1fr;}}
+  </style>
 
-<!-- ===== FIREBASE SDK ===== -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <!-- ===== FIREBASE SDK ===== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyAfFTBbhdBAoAnl4IAiq3gjZ16lrKJHKy8",
-  authDomain: "lostandfoundpwa.firebaseapp.com",
-  projectId: "lostandfoundpwa",
-  storageBucket: "lostandfoundpwa.appspot.com",
-  messagingSenderId: "508722222682",
-  appId: "1:508722222682:web:95ff61b6b27755d5296a63"
-};
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfFTBbhdBAoAnl4IAiq3gjZ16lrKJHKy8",
+      authDomain: "lostandfoundpwa.firebaseapp.com",
+      projectId: "lostandfoundpwa",
+      storageBucket: "lostandfoundpwa.appspot.com",
+      messagingSenderId: "508722222682",
+      appId: "1:508722222682:web:95ff61b6b27755d5296a63"
+    };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-const ADMIN_PIN = "1234";
-let editDocId = null;
+    const ADMIN_PIN = "1234";
+    let editDocId = null;
 
-// Elements
-const loginDiv = document.getElementById("login");
-const adminDiv = document.getElementById("admin");
-const typeSelect = document.getElementById("type");
-const itemInput = document.getElementById("item");
-const locationInput = document.getElementById("location");
-const nameInput = document.getElementById("name");
-const contactInput = document.getElementById("contact");
-const photoInput = document.getElementById("photo");
-const preview = document.getElementById("preview");
-const lostList = document.getElementById("lostList");
-const foundList = document.getElementById("foundList");
-const dateInput = document.getElementById("date");
-const timeInput = document.getElementById("time");
-const searchInput = document.getElementById("search");
+    // Elements
+    const loginDiv = document.getElementById("login");
+    const adminDiv = document.getElementById("admin");
+    const typeSelect = document.getElementById("type");
+    const itemInput = document.getElementById("item");
+    const locationInput = document.getElementById("location");
+    const nameInput = document.getElementById("name");
+    const contactInput = document.getElementById("contact");
+    const photoInput = document.getElementById("photo");
+    const preview = document.getElementById("preview");
+    const lostList = document.getElementById("lostList");
+    const foundList = document.getElementById("foundList");
+    const dateInput = document.getElementById("date");
+    const timeInput = document.getElementById("time");
+    const searchInput = document.getElementById("search");
 
-// ===== LOGIN =====
-window.login = () => {
-  if(document.getElementById("pin").value === ADMIN_PIN){
-    loginDiv.style.display = "none";
-    adminDiv.style.display = "block";
-  } else alert("Invalid PIN");
-};
+    // ===== LOGIN =====
+    window.login = () => {
+      if(document.getElementById("pin").value === ADMIN_PIN){
+        loginDiv.style.display = "none";
+        adminDiv.style.display = "block";
+      } else alert("Invalid PIN");
+    };
 
-// ===== PHOTO PREVIEW =====
-photoInput.addEventListener("change", () => {
-  const file = photoInput.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = () => { preview.src = reader.result; preview.style.display = "block"; };
-  reader.readAsDataURL(file);
-});
-
-// ===== ADD / EDIT ITEM =====
-window.addItem = async () => {
-  const now = new Date();
-  const entry = {
-    type: typeSelect.value,
-    item: itemInput.value.trim(),
-    location: locationInput.value.trim(),
-    name: nameInput.value.trim(),
-    contact: contactInput.value.trim(),
-    photo: preview.src || "",
-    date: dateInput.value || now.toLocaleDateString(),
-    time: timeInput.value || now.toLocaleTimeString(),
-    status: "Unclaimed"
-  };
-
-  if(editDocId){
-    await updateDoc(doc(db,"lostAndFound",editDocId), entry);
-    editDocId = null;
-  } else {
-    await addDoc(collection(db,"lostAndFound"), entry);
-  }
-
-  clearForm();
-};
-
-// ===== CLEAR FORM =====
-function clearForm(){
-  itemInput.value = locationInput.value = nameInput.value = contactInput.value = dateInput.value = timeInput.value = "";
-  preview.src = "";
-  preview.style.display = "none";
-  editDocId = null;
-}
-
-// ===== REAL-TIME RENDER =====
-function renderLists(){
-  onSnapshot(collection(db,"lostAndFound"), snapshot => {
-    lostList.innerHTML = "";
-    foundList.innerHTML = "";
-    snapshot.docs.forEach(docSnap=>{
-      const i = docSnap.data();
-      if(searchInput.value && !i.item.toLowerCase().includes(searchInput.value.toLowerCase())) return;
-      const li = document.createElement("li");
-      li.className = i.type==="found"?"found":"";
-      li.innerHTML = `
-        <img src="${i.photo || ''}">
-        <div>
-          <span class="badge ${i.status==="Claimed"?"claimed":"unclaimed"}">${i.status}</span><br>
-          <strong>${i.item}</strong><br>
-          ${i.location}<br>
-          ${i.name} ${i.contact ? "– "+i.contact : ""}<br>
-          ${i.date}${i.time ? ", "+i.time : ""}
-
-          <div class="actions">
-            <button class="edit" onclick="editItem('${docSnap.id}')">Edit</button>
-            <button class="claim" onclick="toggleStatus('${docSnap.id}')">Claim</button>
-            <button class="delete" onclick="deleteItem('${docSnap.id}')">Delete</button>
-          </div>
-        </div>
-      `;
-      (i.type==="lost"?lostList:foundList).appendChild(li);
+    // ===== PHOTO PREVIEW =====
+    photoInput.addEventListener("change", () => {
+      const file = photoInput.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { preview.src = reader.result; preview.style.display = "block"; };
+      reader.readAsDataURL(file);
     });
-  });
-}
 
-// ===== ADMIN ACTIONS =====
-window.editItem = async docId => {
-  const d = doc(db,"lostAndFound",docId);
-  const snapshot = await getDoc(d);
-  if(!snapshot.exists()) return;
-  const i = snapshot.data();
-  typeSelect.value = i.type;
-  itemInput.value = i.item;
-  locationInput.value = i.location;
-  nameInput.value = i.name;
-  contactInput.value = i.contact;
-  dateInput.value = i.date;
-  timeInput.value = i.time;
-  preview.src = i.photo || "";
-  preview.style.display = i.photo ? "block" : "none";
-  editDocId = docId;
-};
+    // ===== ADD / EDIT ITEM =====
+    window.addItem = async () => {
+      const now = new Date();
+      const entry = {
+        type: typeSelect.value,
+        item: itemInput.value.trim(),
+        location: locationInput.value.trim(),
+        name: nameInput.value.trim(),
+        contact: contactInput.value.trim(),
+        photo: preview.src || "",
+        date: dateInput.value || now.toLocaleDateString(),
+        time: timeInput.value || now.toLocaleTimeString(),
+        status: "Unclaimed"
+      };
 
-window.toggleStatus = async docId => {
-  const d = doc(db,"lostAndFound",docId);
-  const snapshot = await getDoc(d);
-  if(!snapshot.exists()) return;
-  const currentStatus = snapshot.data().status;
-  await updateDoc(d, {status: currentStatus==="Claimed"?"Unclaimed":"Claimed"});
-};
+      if(editDocId){
+        await updateDoc(doc(db,"lostAndFound",editDocId), entry);
+        editDocId = null;
+      } else {
+        await addDoc(collection(db,"lostAndFound"), entry);
+      }
 
-window.deleteItem = async docId => await deleteDoc(doc(db,"lostAndFound",docId));
+      clearForm();
+    };
 
-// ===== SEARCH =====
-searchInput.addEventListener("input", renderLists);
+    // ===== CLEAR FORM =====
+    function clearForm(){
+      itemInput.value = locationInput.value = nameInput.value = contactInput.value = dateInput.value = timeInput.value = "";
+      preview.src = "";
+      preview.style.display = "none";
+      editDocId = null;
+    }
 
-// Initial render
-renderLists();
-</script>
+    // ===== REAL-TIME RENDER =====
+    function renderLists(){
+      onSnapshot(collection(db,"lostAndFound"), snapshot => {
+        lostList.innerHTML = "";
+        foundList.innerHTML = "";
+        snapshot.docs.forEach(docSnap=>{
+          const i = docSnap.data();
+          if(searchInput.value && !i.item.toLowerCase().includes(searchInput.value.toLowerCase())) return;
+          const li = document.createElement("li");
+
+          // Assign class based on type
+          li.className = "";
+          if(i.type === "found") li.classList.add("found");
+          else if(i.type === "pet") li.classList.add("pet");
+
+          li.innerHTML = `
+            <img src="${i.photo || ''}">
+            <div>
+              <span class="badge ${i.status==="Claimed"?"claimed":"unclaimed"}">${i.status}</span><br>
+              <strong>${i.item}</strong><br>
+              ${i.location}<br>
+              ${i.name} ${i.contact ? "– "+i.contact : ""}<br>
+              ${i.date}${i.time ? ", "+i.time : ""}
+              <div class="actions">
+                <button class="edit" onclick="editItem('${docSnap.id}')">Edit</button>
+                <button class="claim" onclick="toggleStatus('${docSnap.id}')">Claim</button>
+                <button class="delete" onclick="deleteItem('${docSnap.id}')">Delete</button>
+              </div>
+            </div>
+          `;
+          // If it's a pet, add the pet icon
+          if(i.type === "pet") {
+            li.innerHTML = `
+              <img src="https://cdn-icons-png.flaticon.com/512/3460/3460335.png" style="width:40px;height:40px;">
+              ${li.innerHTML}
+            `;
+          }
+
+          // Append to the correct list (lost or found)
+          (i.type==="lost" || i.type==="pet"?lostList:foundList).appendChild(li);
+        });
+      });
+    }
+
+    // ===== ADMIN ACTIONS =====
+    window.editItem = async docId => {
+      const d = doc(db,"lostAndFound",docId);
+      const snapshot = await getDoc(d);
+      if(!snapshot.exists()) return;
+      const i = snapshot.data();
+      typeSelect.value = i.type;
+      itemInput.value = i.item;
+      locationInput.value = i.location;
+      nameInput.value = i.name;
+      contactInput.value = i.contact;
+      dateInput.value = i.date;
+      timeInput.value = i.time;
+      preview.src = i.photo || "";
+      preview.style.display = i.photo ? "block" : "none";
+      editDocId = docId;
+    };
+
+    window.toggleStatus = async docId => {
+      const d = doc(db,"lostAndFound",docId);
+      const snapshot = await getDoc(d);
+      if(!snapshot.exists()) return;
+      const currentStatus = snapshot.data().status;
+      await updateDoc(d, {status: currentStatus==="Claimed"?"Unclaimed":"Claimed"});
+    };
+
+    window.deleteItem = async docId => await deleteDoc(doc(db,"lostAndFound",docId));
+
+    // ===== SEARCH =====
+    searchInput.addEventListener("input", renderLists);
+
+    // Initial render
+    renderLists();
+  </script>
 </head>
 <body>
 
@@ -214,6 +228,7 @@ renderLists();
       <select id="type">
         <option value="lost">Lost</option>
         <option value="found">Found</option>
+        <option value="pet">Pet</option>
       </select>
       <input id="item" placeholder="Item name">
       <input id="location" placeholder="Location">
